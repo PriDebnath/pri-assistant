@@ -1,98 +1,215 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ChatInput } from "@/feature/assistant/component/ChatInput";
+import { MessageBubble } from "@/feature/assistant/component/MessageBubble";
+import { TypingIndicator } from "@/feature/assistant/component/TypingIndicator";
+import { handleAssistantMessage } from "@/feature/assistant/service";
+import { ChatMessage } from "@/types";
+import { useEffect, useRef, useState } from "react";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import {
+  FlatList,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+// import { ChatInput } from "@/src/components/ChatInput";
+// import { MessageBubble } from "@/src/components/MessageBubble";
+// import { TypingIndicator } from "@/src/components/TypingIndicator";
+
+// import { handleAssistantMessage } from "@/src/assistant/assistant.service";
+
+// import type { ChatMessage } from "@/src/types/chat";
 
 export default function HomeScreen() {
+  const [messages, setMessages] =
+    useState<ChatMessage[]>([
+      {
+        id: "welcome",
+        role: "assistant",
+        text:
+          "Hi! I'm your assistant. " +
+          "Tell me what you want to do.",
+        createdAt: Date.now(),
+      },
+    ]);
+
+  const [input, setInput] = useState("");
+  const [isThinking, setIsThinking] =
+    useState(false);
+
+  const listRef =
+    useRef<FlatList<ChatMessage>>(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      listRef.current?.scrollToEnd({
+        animated: true,
+      });
+    }, 50);
+  }, [messages, isThinking]);
+
+  async function sendMessage() {
+    const text = input.trim();
+
+    if (!text || isThinking) {
+      return;
+    }
+
+    setInput("");
+
+    const userMessage: ChatMessage = {
+      id: `${Date.now()}-user`,
+      role: "user",
+      text,
+      createdAt: Date.now(),
+    };
+
+    setMessages((current) => [
+      ...current,
+      userMessage,
+    ]);
+
+    setIsThinking(true);
+
+    try {
+      const response =
+        await handleAssistantMessage(text);
+
+      const assistantMessage: ChatMessage = {
+        id: `${Date.now()}-assistant`,
+        role: "assistant",
+        text: response,
+        createdAt: Date.now(),
+      };
+
+      setMessages((current) => [
+        ...current,
+        assistantMessage,
+      ]);
+    } catch {
+      setMessages((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-error`,
+          role: "assistant",
+          text:
+            "Something went wrong while trying to do that.",
+          createdAt: Date.now(),
+        },
+      ]);
+    } finally {
+      setIsThinking(false);
+    }
+  }
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>
+              Assistant
+            </Text>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+            <Text style={styles.subtitle}>
+              Your personal assistant
+            </Text>
+          </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+          <View style={styles.status}>
+            <View style={styles.statusDot} />
+
+            <Text style={styles.statusText}>
+              Local
+            </Text>
+          </View>
+        </View>
+
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <MessageBubble message={item} />
+          )}
+          contentContainerStyle={styles.messages}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          ListFooterComponent={
+            isThinking ? <TypingIndicator /> : null
+          }
+        />
+
+        <ChatInput
+          value={input}
+          onChangeText={setInput}
+          onSend={sendMessage}
+          disabled={isThinking}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    backgroundColor: "#FFFFFF",
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
+
+  container: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    backgroundColor: "#FFFFFF",
   },
+
+  header: {
+    height: 64,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E5E7EB",
+  },
+
   title: {
-    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111827",
   },
-  code: {
-    textTransform: 'uppercase',
+
+  subtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    color: "#6B7280",
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+
+  status: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#22C55E",
+  },
+
+  statusText: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+
+  messages: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
 });
