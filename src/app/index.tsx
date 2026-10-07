@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   FlatList,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -21,6 +20,7 @@ import {
 // import { handleAssistantMessage } from "@/src/assistant/assistant.service";
 
 // import type { ChatMessage } from "@/src/types/chat";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const [messages, setMessages] =
@@ -105,10 +105,16 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // <SafeAreaView >
+        <SafeAreaView
+        style={styles.safeArea}
+      // style={styles.safe}
+      edges={["top", "bottom"]}
+      testID="on-board-screen"
+    >
       <StatusBar barStyle="dark-content" />
 
-      <View style={styles.container}>
+      {/* <View style={styles.container}>
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>
@@ -150,7 +156,7 @@ export default function HomeScreen() {
           onSend={sendMessage}
           disabled={isThinking}
         />
-      </View>
+      </View> */}
     </SafeAreaView>
   );
 }

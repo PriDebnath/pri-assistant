@@ -34,12 +34,13 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-        "android:prebuild": "npx expo prebuild",
-        "android:generate:apk:armeabi-v7a": "cd android && gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a && cd .."
+    "android:prebuild": "npx expo prebuild",
+    "android:generate:apk": "cd android && gradlew assembleRelease  && cd ..",
+    "android:generate:apk:armeabi-v7a": "cd android && gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a && cd .."
   },
   "private": true
 }

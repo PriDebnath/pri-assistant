@@ -1,6 +1,4 @@
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -21,39 +19,32 @@ export function ChatInput({
   onSend,
   disabled = false,
 }: Props) {
-  const canSend =
-    value.trim().length > 0 && !disabled;
+  const canSend = value.trim().length > 0 && !disabled;
 
   return (
-    <KeyboardAvoidingView
-      behavior={
-        Platform.OS === "ios" ? "padding" : undefined
-      }
-    >
-      <View style={styles.container}>
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          placeholder="Ask anything..."
-          placeholderTextColor="#9CA3AF"
-          multiline
-          maxLength={2000}
-          editable={!disabled}
-          style={styles.input}
-        />
+    <View style={styles.container}>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder="Ask anything..."
+        placeholderTextColor="#9CA3AF"
+        multiline
+        maxLength={2000}
+        editable={!disabled}
+        style={styles.input}
+      />
 
-        <Pressable
-          onPress={onSend}
-          disabled={!canSend}
-          style={[
-            styles.sendButton,
-            !canSend && styles.disabled,
-          ]}
-        >
-          <Text style={styles.sendText}>↑</Text>
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+      <Pressable
+        onPress={onSend}
+        disabled={!canSend}
+        style={[
+          styles.sendButton,
+          !canSend && styles.disabled,
+        ]}
+      >
+        <Text style={styles.sendText}>↑</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -61,33 +52,47 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "flex-end",
-    gap: 8,
+
     paddingHorizontal: 12,
     paddingTop: 8,
-    paddingBottom: 10,
+    paddingBottom: 8,
+
+    gap: 8,
+
     backgroundColor: "#FFFFFF",
+
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#E5E7EB",
   },
 
   input: {
     flex: 1,
+
     minHeight: 46,
     maxHeight: 120,
+
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
+
     borderRadius: 23,
+
     backgroundColor: "#F3F4F6",
+
     color: "#111827",
     fontSize: 16,
+
+    textAlignVertical: "center",
   },
 
   sendButton: {
     width: 46,
     height: 46,
+
     borderRadius: 23,
+
     alignItems: "center",
     justifyContent: "center",
+
     backgroundColor: "#111827",
   },
 
@@ -99,5 +104,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 24,
     fontWeight: "600",
+    lineHeight: 26,
   },
 });
