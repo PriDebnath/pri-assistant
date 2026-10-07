@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StatusBar,
   StyleSheet,
   Text,
@@ -112,9 +114,14 @@ export default function HomeScreen() {
       edges={["top", "bottom"]}
       testID="on-board-screen"
     >
-      <StatusBar barStyle="dark-content" />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <StatusBar backgroundColor={'#1a01ff'}   hidden={false}
+       />
 
-      {/* <View style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>
@@ -134,7 +141,6 @@ export default function HomeScreen() {
             </Text>
           </View>
         </View>
-
         <FlatList
           ref={listRef}
           data={messages}
@@ -150,14 +156,16 @@ export default function HomeScreen() {
           }
         />
 
-        <ChatInput
-          value={input}
-          onChangeText={setInput}
-          onSend={sendMessage}
-          disabled={isThinking}
-        />
-      </View> */}
-    </SafeAreaView>
+      </View>
+      <ChatInput
+        value={input}
+        onChangeText={setInput}
+        onSend={sendMessage}
+        disabled={isThinking}
+      />
+    </KeyboardAvoidingView>   
+       </SafeAreaView>
+
   );
 }
 
