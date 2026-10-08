@@ -38,7 +38,16 @@
         }
       ],
       "expo-web-browser",
-      "expo-speech-recognition"
+      "expo-speech-recognition",
+         [
+        "llama.rn",
+        {
+          "enableEntitlements": true,
+          "entitlementsProfile": "production",
+          "forceCxx20": true,
+          "enableOpenCL": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
