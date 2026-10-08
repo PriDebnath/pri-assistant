@@ -4,7 +4,7 @@ import { TypingIndicator } from "@/feature/assistant/component/TypingIndicator";
 import { handleAssistantMessage } from "@/feature/assistant/service";
 import { ChatMessage } from "@/types";
 import { useEffect, useRef, useState } from "react";
-
+import * as Speech from "expo-speech";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -78,7 +78,11 @@ export default function HomeScreen() {
     try {
       const response =
         await handleAssistantMessage(text);
-
+      Speech.speak(response, {
+        language: "en-IN",
+        pitch: 1,
+        rate: 0.9,
+      });
       const assistantMessage: ChatMessage = {
         id: `${Date.now()}-assistant`,
         role: "assistant",
@@ -108,63 +112,65 @@ export default function HomeScreen() {
 
   return (
     // <SafeAreaView >
-        <SafeAreaView
-        style={styles.safeArea}
+    <SafeAreaView
+      style={styles.safeArea}
       // style={styles.safe}
       edges={["top", "bottom"]}
       testID="on-board-screen"
     >
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <StatusBar backgroundColor={'#1a01ff'}   hidden={false}
-       />
-
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>
-              Assistant
-            </Text>
-
-            <Text style={styles.subtitle}>
-              Your personal assistant
-            </Text>
-          </View>
-
-          <View style={styles.status}>
-            <View style={styles.statusDot} />
-
-            <Text style={styles.statusText}>
-              Local
-            </Text>
-          </View>
-        </View>
-        <FlatList
-          ref={listRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <MessageBubble message={item} />
-          )}
-          contentContainerStyle={styles.messages}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          ListFooterComponent={
-            isThinking ? <TypingIndicator /> : null
-          }
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <StatusBar backgroundColor={'#1a01ff'} hidden={false}
         />
 
-      </View>
-      <ChatInput
-        value={input}
-        onChangeText={setInput}
-        onSend={sendMessage}
-        disabled={isThinking}
-      />
-    </KeyboardAvoidingView>   
-       </SafeAreaView>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>
+                Assistant
+              </Text>
+
+              <Text style={styles.subtitle}>
+                Your personal assistant
+              </Text>
+            </View>
+
+            <View style={styles.status}>
+              <View style={styles.statusDot} />
+
+              <Text style={styles.statusText}>
+                Local
+              </Text>
+            </View>
+          </View>
+          <FlatList
+            ref={listRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <MessageBubble message={item} />
+            )}
+            contentContainerStyle={styles.messages}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            ListFooterComponent={
+              isThinking ? <TypingIndicator /> : null
+            }
+          />
+
+        </View>
+
+
+        <ChatInput
+          value={input}
+          onChangeText={setInput}
+          onSend={sendMessage}
+          disabled={isThinking}
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
 
   );
 }
