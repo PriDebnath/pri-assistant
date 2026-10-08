@@ -39,7 +39,7 @@
       ],
       "expo-web-browser",
       "expo-speech-recognition",
-         [
+      [
         "llama.rn",
         {
           "enableEntitlements": true,
@@ -47,7 +47,8 @@
           "forceCxx20": true,
           "enableOpenCL": true
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,
