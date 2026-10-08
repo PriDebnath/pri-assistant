@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mymobileapp",
     "userInterfaceStyle": "automatic",
-        "newArchEnabled": true,
+    "newArchEnabled": true,
     "ios": {
       "icon": "./assets/expo.icon"
     },
@@ -18,7 +18,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": false,
+      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
       "package": "com.pri.assistant"
@@ -37,7 +37,8 @@
           "imageWidth": 76
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true,

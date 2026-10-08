@@ -5,6 +5,11 @@ import {
   TextInput,
   View,
 } from "react-native";
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
+import { useState } from "react";
 
 type Props = {
   value: string;
@@ -19,7 +24,66 @@ export function ChatInput({
   onSend,
   disabled = false,
 }: Props) {
+  const [isListening, setIsListening] = useState(false);
+
   const canSend = value.trim().length > 0 && !disabled;
+
+  useSpeechRecognitionEvent("start", () => {
+    setIsListening(true);
+  });
+
+  useSpeechRecognitionEvent("end", () => {
+    setIsListening(false);
+  });
+
+  useSpeechRecognitionEvent("error", (event) => {
+    console.log("Speech recognition error:", event.error);
+    setIsListening(false);
+  });
+
+  useSpeechRecognitionEvent("result", (event) => {
+    const text = event.results?.[0]?.transcript;
+
+    if (text) {
+      onChangeText(text);
+    }
+  });
+
+  const startListening = async () => {
+    if (disabled || isListening) {
+      return;
+    }
+
+    const result =
+      await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+
+    if (!result.granted) {
+      console.log("Microphone permission denied");
+      return;
+    }
+
+    ExpoSpeechRecognitionModule.start({
+      lang: "en-IN",
+      interimResults: true,
+      continuous: false,
+    });
+  };
+
+  const stopListening = () => {
+    if (!isListening) {
+      return;
+    }
+
+    ExpoSpeechRecognitionModule.stop();
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -34,6 +98,22 @@ export function ChatInput({
         style={styles.input}
       />
 
+      {/* Mic */}
+      <Pressable
+        onPress={toggleListening}
+        disabled={disabled}
+        style={[
+          styles.micButton,
+          isListening && styles.micListening,
+          disabled && styles.disabled,
+        ]}
+      >
+        <Text style={styles.micText}>
+          {isListening ? "■" : "🎤"}
+        </Text>
+      </Pressable>
+
+      {/* Send */}
       <Pressable
         onPress={onSend}
         disabled={!canSend}
@@ -84,6 +164,26 @@ const styles = StyleSheet.create({
     textAlignVertical: "center",
   },
 
+  micButton: {
+    width: 46,
+    height: 46,
+
+    borderRadius: 23,
+
+    alignItems: "center",
+    justifyContent: "center",
+
+    backgroundColor: "#F3F4F6",
+  },
+
+  micListening: {
+    backgroundColor: "#FEE2E2",
+  },
+
+  micText: {
+    fontSize: 20,
+  },
+
   sendButton: {
     width: 46,
     height: 46,
@@ -102,8 +202,8 @@ const styles = StyleSheet.create({
 
   sendText: {
     color: "#FFFFFF",
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "600",
-    lineHeight: 26,
+    lineHeight: 28,
   },
 });
