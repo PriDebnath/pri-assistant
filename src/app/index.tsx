@@ -23,6 +23,7 @@ import {
 
 // import type { ChatMessage } from "@/src/types/chat";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { WakeWordTest } from "@/feature/assistant/component/wake-word/WakeWordTest";
 
 export default function HomeScreen() {
   const [messages, setMessages] =
@@ -131,7 +132,7 @@ export default function HomeScreen() {
               <Text style={styles.title}>
                 Assistant
               </Text>
-
+<WakeWordTest/>
               <Text style={styles.subtitle}>
                 Your personal assistant
               </Text>
