@@ -1,74 +1,30 @@
-import {
-  Openwakeword,
-} from "react-native-openwakeword";
+import { Openwakeword } from "react-native-openwakeword";
+import { prepareWakeWordModels } from "./WakeWordModels";
 
-import {
-  prepareWakeWordModels,
-} from "./WakeWordModels";
-
-let detector:
-  Awaited<
-    ReturnType<
-      typeof Openwakeword.createDetector
-    >
-  > | null = null;
+function toNativePath(uri: string): string {
+  return decodeURIComponent(uri.replace(/^file:\/\//, ""));
+}
 
 export async function initializeWakeWord() {
-  if (detector) {
-    return detector;
-  }
+  const models = await prepareWakeWordModels();
 
-  console.log(
-    "[WakeWord] Preparing models..."
-  );
+  const melspecPath = toNativePath(models.melspectrogram);
+  const embeddingPath = toNativePath(models.embedding);
+  const wakeWordPath = toNativePath(models.heyJarvis);
 
-  const models =
-    await prepareWakeWordModels();
+  console.log("[WakeWord] Native model paths:", {
+    melspecPath,
+    embeddingPath,
+    wakeWordPath,
+  });
 
-  console.log(
-    "[WakeWord] Model paths:",
-    models
-  );
+  const detector = await Openwakeword.createDetector({
+    melspecPath,
+    embeddingPath,
+    wakeWordPath,
+  });
 
-  detector =
-    await Openwakeword.createDetector({
-      melspecPath:
-        models.melspectrogram,
-
-      embeddingPath:
-        models.embedding,
-
-      wakeWordPath:
-        models.heyJarvis,
-    });
-
-  detector.setThreshold(0.5);
-
-  console.log(
-    "[WakeWord] Detector initialized"
-  );
+  console.log("[WakeWord] Detector initialized successfully");
 
   return detector;
-}
-
-export function processWakeWordFrame(
-  buffer: ArrayBuffer
-) {
-  if (!detector) {
-    throw new Error(
-      "Wake-word detector has not been initialized"
-    );
-  }
-
-  return detector.processFrame(
-    buffer
-  );
-}
-
-export function resetWakeWord() {
-  detector?.reset();
-}
-
-export function destroyWakeWord() {
-  detector = null;
 }
