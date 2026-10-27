@@ -21,8 +21,7 @@ export function WakeWordTest() {
 
     async function setup() {
       try {
-        await initializeWakeWord();
-
+      let detector =  await initializeWakeWord();
         if (mounted) {
           setStatus(
             "Wake-word model loaded"
