@@ -1,8 +1,18 @@
 // metro.config.js
+// const { getDefaultConfig } = require("expo/metro-config");
+
+// const config = getDefaultConfig(__dirname);
+
+// config.resolver.assetExts.push("tflite");
+
+// module.exports = config;
+
 const { getDefaultConfig } = require("expo/metro-config");
 
 const config = getDefaultConfig(__dirname);
 
-config.resolver.assetExts.push("tflite");
+if (!config.resolver.assetExts.includes("tflite")) {
+  config.resolver.assetExts.push("tflite");
+}
 
 module.exports = config;

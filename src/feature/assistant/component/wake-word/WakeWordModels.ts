@@ -88,8 +88,8 @@ export async function prepareWakeWordModels() {
   );
 
   const heyJarvis = await copyModel(
-    require("../../../../../assets/wakeword/hey_jarvis_v0.1.tflite"),
-    "hey_jarvis_v0.1.tflite"
+    require("../../../../../assets/wakeword/hey_jarvis_v0_1.tflite"),
+    "hey_jarvis_v0_1.tflite"
   );
 
   console.log("[WakeWord] All model paths prepared:", {
