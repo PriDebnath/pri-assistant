@@ -8,9 +8,9 @@ import {
   View,
 } from "react-native";
 
-import {
-  initializeWakeWord,
-} from "./WakeWordDetector";
+// import {
+//   initializeWakeWord,
+// } from "./WakeWordDetector";
 import { startWakeWordListening } from "./WakeWordListener";
 
 export function WakeWordTest() {
@@ -25,12 +25,12 @@ useEffect(() => {
     try {
       console.log("[WakeWord] Starting listener...");
 
-      // const stop = await startWakeWordListening((yo) => {
-        console.log("[WakeWord] Detected:", 'yo');
-      // });
+      const stop = await startWakeWordListening((yo) => {
+        console.log("[WakeWord] Detected:", yo);
+      });
 
       if (!mounted) {
-        await stop();
+        // await stop();
         return;
       }
 
