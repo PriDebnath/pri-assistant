@@ -13,7 +13,7 @@ export async function startWakeWordListening(
 ){
 // ): Promise<() => Promise<void>> {
     console.log('starttt');
-    console.log(JSON.stringify(AudioManager,null,2));
+    // console.log(JSON.stringify(AudioManager,null,2));
     
 //   const permission = await AudioManager.requestRecordingPermissions();
 // console.log({permission});
