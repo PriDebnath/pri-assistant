@@ -1,0 +1,177 @@
+name: Android APK
+
+on:
+  workflow_dispatch:
+
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  android_build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --------------------------------------------------
+      # Checkout repository
+      # --------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------
+      # Node.js + npm cache
+      # --------------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # --------------------------------------------------
+      # Java
+      # --------------------------------------------------
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # --------------------------------------------------
+      # Create .env
+      # --------------------------------------------------
+      - name: Create .env
+        # working-directory: frontend
+        run: |
+          echo "EXPO_PUBLIC_BACKEND_URL=${{ vars.EXPO_PUBLIC_BACKEND_URL }}" >> .env
+          echo "EXPO_PUBLIC_TRUECALLER_CLIENT_ID=${{ secrets.EXPO_PUBLIC_TRUECALLER_CLIENT_ID }}" >> .env
+
+      # --------------------------------------------------
+      # Install dependencies
+      # --------------------------------------------------
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
+      # --------------------------------------------------
+      # Generate Android native project
+      # --------------------------------------------------
+      - name: Generate Android project
+        working-directory: frontend
+        run: npx expo prebuild --platform android --no-install
+
+      # --------------------------------------------------
+      # Gradle cache
+      # --------------------------------------------------
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # --------------------------------------------------
+      # Make gradlew executable
+      # --------------------------------------------------
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      # --------------------------------------------------
+      # Configure Gradle
+      # --------------------------------------------------
+      - name: Configure Gradle
+        working-directory: android
+        run: |
+          mkdir -p ~/.gradle
+
+          cat >> ~/.gradle/gradle.properties <<'EOF'
+          org.gradle.caching=true
+          org.gradle.parallel=true
+          org.gradle.daemon=true
+          org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g
+          EOF
+
+      # --------------------------------------------------
+      # Show disk space before Gradle
+      # --------------------------------------------------
+      - name: Check disk space
+        run: |
+          echo "=== Disk space before Gradle ==="
+          df -h
+
+      # --------------------------------------------------
+      # Build Release APK
+      # --------------------------------------------------
+      - name: Build Release APK
+        working-directory: android
+        run: |
+          ./gradlew assembleRelease \
+            --build-cache \
+            --parallel \
+            --stacktrace
+
+      # --------------------------------------------------
+      # Show disk space after Gradle
+      # --------------------------------------------------
+      - name: Check disk space
+        run: |
+          echo "=== Disk space after Gradle ==="
+          df -h
+
+      # --------------------------------------------------
+      # Prepare Release APK
+      # --------------------------------------------------
+      - name: Prepare APK
+        run: |
+          mkdir -p apks
+
+          cp android/app/build/outputs/apk/release/app-release.apk \
+             apks/app-release.apk
+
+          echo "=== APK size ==="
+          ls -lh apks/app-release.apk
+
+      # --------------------------------------------------
+      # Upload APK as GitHub Actions artifact
+      # --------------------------------------------------
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-apk
+          path: apks/app-release.apk
+
+      # --------------------------------------------------
+      # Upload APK to GitHub Release
+      # --------------------------------------------------
+      - name: Upload APK to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apks/app-release.apk
+
+      # ==================================================
+      # DEBUG BUILD — DISABLED FOR NOW
+      # ==================================================
+
+      # - name: Build Debug APK
+      #   working-directory: android
+      #   run: |
+      #     ./gradlew assembleDebug \
+      #       --no-daemon \
+      #       --stacktrace
+
+      # - name: Prepare Debug APK
+      #   run: |
+      #     cp android/app/build/outputs/apk/debug/app-debug.apk \
+      #        apks/app-debug.apk
+
+      # - name: Upload Debug APK
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: android-debug-apk
+      #     path: apks/app-debug.apk

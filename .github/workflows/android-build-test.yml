@@ -1,0 +1,111 @@
+name: Android Build Test
+
+on:
+  push:
+    branches:
+      - development
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android_build_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------------
+      # Checkout
+      # -----------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------
+      # Node.js + npm cache
+      # -----------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # -----------------------------------------------
+      # Java
+      # -----------------------------------------------
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # -----------------------------------------------
+      # Gradle + Gradle cache
+      # -----------------------------------------------
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # -----------------------------------------------
+      # Create .env
+      # -----------------------------------------------
+      - name: Create .env
+        working-directory: frontend
+        run: |
+          echo "EXPO_PUBLIC_BACKEND_URL=${{ vars.EXPO_PUBLIC_BACKEND_URL }}" >> .env
+          echo "EXPO_PUBLIC_TRUECALLER_CLIENT_ID=${{ secrets.EXPO_PUBLIC_TRUECALLER_CLIENT_ID }}" >> .env
+
+      # -----------------------------------------------
+      # Install dependencies
+      # -----------------------------------------------
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
+      # -----------------------------------------------
+      # Generate Android project
+      # -----------------------------------------------
+      - name: Generate Android project
+        working-directory: frontend
+        run: npx expo prebuild --platform android --no-install
+
+      # -----------------------------------------------
+      # Gradle permissions
+      # -----------------------------------------------
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      # -----------------------------------------------
+      # Configure Gradle
+      # -----------------------------------------------
+      - name: Configure Gradle
+        run: |
+          mkdir -p ~/.gradle
+
+          cat >> ~/.gradle/gradle.properties <<'EOF'
+          org.gradle.caching=true
+          org.gradle.parallel=true
+          org.gradle.daemon=true
+          org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g
+          EOF
+
+      # -----------------------------------------------
+      # Build Android APK
+      # -----------------------------------------------
+      - name: Build Android APK
+        working-directory: android
+        run: |
+          ./gradlew assembleRelease \
+            --build-cache \
+            --parallel
+
+      # -----------------------------------------------
+      # Build successful
+      # -----------------------------------------------
+      - name: Build summary
+        run: |
+          echo "========================================"
+          echo "Android build completed successfully"
+          echo "========================================"
+
+          ls -lh android/app/build/outputs/apk/release/
