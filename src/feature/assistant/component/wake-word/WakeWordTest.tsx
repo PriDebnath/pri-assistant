@@ -69,7 +69,7 @@ useEffect(() => {
       }}
     >
       <Text>
-        {status}
+        status: {status}
       </Text>
     </View>
   );
