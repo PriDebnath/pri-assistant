@@ -97,7 +97,7 @@ export async function startWakeWordListening(
               "[WakeWord] DETECTED! Probability:",
               probability
             );
-
+  wasDetected = true;
             onDetected(probability);
           }
 

@@ -1,3 +1,4 @@
+
 import {
   Pressable,
   StyleSheet,
@@ -5,11 +6,13 @@ import {
   TextInput,
   View,
 } from "react-native";
+
 import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
 } from "expo-speech-recognition";
-import { useEffect, useState } from "react";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import { startWakeWordListening } from "./wake-word/WakeWordListener";
 
 type Props = {
@@ -27,53 +30,151 @@ export function ChatInput({
 }: Props) {
   const [isListening, setIsListening] = useState(false);
 
+  const wakeWordStopRef = useRef<(() => Promise<void>) | null>(null);
+
+  const mountedRef = useRef(true);
+  const restartingRef = useRef(false);
+  const speechStartedRef = useRef(false);
+
   const canSend = value.trim().length > 0 && !disabled;
 
+  // Stop wake word listener
+  const stopWakeWord = useCallback(async () => {
+    const stop = wakeWordStopRef.current;
+
+    if (!stop) return;
+
+    wakeWordStopRef.current = null;
+
+    try {
+      await stop();
+    } catch (error) {
+      console.log("[WakeWord] Stop error:", error);
+    }
+  }, []);
+
+  // Start wake word listener
+  const startWakeWord = useCallback(async () => {
+    if (!mountedRef.current || restartingRef.current) return;
+
+    restartingRef.current = true;
+
+    try {
+      await stopWakeWord();
+
+      console.log("[WakeWord] Starting...");
+
+      const stop = await startWakeWordListening(() => {
+        if (!mountedRef.current) return;
+
+        console.log("[WakeWord] Detected!");
+
+        // Prevent multiple speech recognition sessions.
+        if (speechStartedRef.current) return;
+
+        speechStartedRef.current = true;
+
+        // Stop wake-word recorder before starting speech recognition.
+        void stop().catch(console.error);
+
+        wakeWordStopRef.current = null;
+
+        void startSpeechRecognition();
+      });
+
+      if (!mountedRef.current) {
+        await stop();
+        return;
+      }
+
+      wakeWordStopRef.current = stop;
+
+    } catch (error) {
+      console.error("[WakeWord] Start failed:", error);
+    } finally {
+      restartingRef.current = false;
+    }
+  }, [stopWakeWord]);
+
+  // Start speech recognition
+  const startSpeechRecognition = useCallback(async () => {
+    try {
+      const permission =
+        await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+
+      if (!permission.granted) {
+        speechStartedRef.current = false;
+        await startWakeWord();
+        return;
+      }
+
+      ExpoSpeechRecognitionModule.start({
+        lang: "en-IN",
+        interimResults: true,
+        continuous: false,
+      });
+
+    } catch (error) {
+      console.error("[Speech] Start failed:", error);
+
+      speechStartedRef.current = false;
+      await startWakeWord();
+    }
+  }, [startWakeWord]);
+
+  // Speech started
   useSpeechRecognitionEvent("start", () => {
+    console.log("[Speech] Started");
     setIsListening(true);
   });
 
+  // Speech recognition ended
   useSpeechRecognitionEvent("end", () => {
+    console.log("[Speech] Ended");
+
     setIsListening(false);
+    speechStartedRef.current = false;
+
+    // Restart wake-word detection only after speech recognition ends.
+    void startWakeWord();
   });
 
+  // Speech recognition error
   useSpeechRecognitionEvent("error", (event) => {
-    console.log("Speech recognition error:", event.error);
+    console.log("[Speech] Error:", event.error);
+
     setIsListening(false);
+    speechStartedRef.current = false;
+
+    void startWakeWord();
   });
 
+  // Speech result
   useSpeechRecognitionEvent("result", (event) => {
     const text = event.results?.[0]?.transcript;
-    console.log("Speech recognition success:", text);
- if (text) {
+
+    console.log("[Speech] Result:", text);
+
+    if (text) {
       onChangeText(text);
     }
+
+    // Do not restart wake word here.
+    // Wait for the "end" event.
   });
 
+  // Manual microphone control
   const startListening = async () => {
-    if (disabled || isListening) {
-      return;
-    }
+    if (disabled || isListening || speechStartedRef.current) return;
 
-    const result =
-      await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    speechStartedRef.current = true;
 
-    if (!result.granted) {
-      console.log("Microphone permission denied");
-      return;
-    }
-
-    ExpoSpeechRecognitionModule.start({
-      lang: "en-IN",
-      interimResults: true,
-      continuous: false,
-    });
+    await stopWakeWord();
+    await startSpeechRecognition();
   };
 
   const stopListening = () => {
-    if (!isListening) {
-      return;
-    }
+    if (!isListening) return;
 
     ExpoSpeechRecognitionModule.stop();
   };
@@ -82,58 +183,22 @@ export function ChatInput({
     if (isListening) {
       stopListening();
     } else {
-      startListening();
+      void startListening();
     }
   };
 
+  // Initial wake-word listener
   useEffect(() => {
-  let mounted = true;
-  let stopListeningsetup: (() => Promise<void>) | undefined;
+    mountedRef.current = true;
 
-  async function setup() {
-    try {
-      console.log("[WakeWord] Starting listener...");
+    void startWakeWord();
 
-      const stop = await startWakeWordListening((yo) => {
-        console.log("[WakeWord] Detected:", yo);
-        setTimeout(() => {
-                  startListening()
+    return () => {
+      mountedRef.current = false;
 
-        }, 2000);
-      });
-
-      if (!mounted) {
-        // await stop();
-        return;
-      }
-
-      // stopListening = stop;
-      // setStatus("Listening for Hey Jarvis");
-    } catch (error) {
-      console.error("[WakeWord] Initialization failed:", error);
-
-      if (mounted) {
-        // setStatus(
-        //   `Failed: ${
-        //     error instanceof Error ? error.message : String(error)
-        //   }`
-        // );
-      }
-    }
-  }
-
-  void setup();
-
-  return () => {
-    mounted = false;
-
-    if (stopListeningsetup) {
-      void stopListeningsetup().catch((error) => {
-        console.error("[WakeWord] Stop failed:", error);
-      });
-    }
-  };
-}, []);
+      void stopWakeWord();
+    };
+  }, [startWakeWord, stopWakeWord]);
 
   return (
     <View style={styles.container}>
@@ -148,7 +213,6 @@ export function ChatInput({
         style={styles.input}
       />
 
-      {/* Mic */}
       <Pressable
         onPress={toggleListening}
         disabled={disabled}
@@ -163,7 +227,6 @@ export function ChatInput({
         </Text>
       </Pressable>
 
-      {/* Send */}
       <Pressable
         onPress={onSend}
         disabled={!canSend}
@@ -182,74 +245,51 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "flex-end",
-
     paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 8,
-
     gap: 8,
-
     backgroundColor: "#FFFFFF",
-
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#E5E7EB",
   },
-
   input: {
     flex: 1,
-
     minHeight: 46,
     maxHeight: 120,
-
     paddingHorizontal: 16,
     paddingVertical: 10,
-
     borderRadius: 23,
-
     backgroundColor: "#F3F4F6",
-
     color: "#111827",
     fontSize: 16,
-
     textAlignVertical: "center",
   },
-
   micButton: {
     width: 46,
     height: 46,
-
     borderRadius: 23,
-
     alignItems: "center",
     justifyContent: "center",
-
     backgroundColor: "#F3F4F6",
   },
-
   micListening: {
     backgroundColor: "#FEE2E2",
   },
-
   micText: {
     fontSize: 20,
   },
-
   sendButton: {
     width: 46,
     height: 46,
-
     borderRadius: 23,
-
     alignItems: "center",
     justifyContent: "center",
-
     backgroundColor: "#111827",
   },
-
   disabled: {
     opacity: 0.35,
   },
-
   sendText: {
     color: "#FFFFFF",
     fontSize: 26,
