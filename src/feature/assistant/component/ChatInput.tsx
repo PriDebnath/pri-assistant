@@ -9,7 +9,8 @@ import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
 } from "expo-speech-recognition";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { startWakeWordListening } from "./wake-word/WakeWordListener";
 
 type Props = {
   value: string;
@@ -43,8 +44,8 @@ export function ChatInput({
 
   useSpeechRecognitionEvent("result", (event) => {
     const text = event.results?.[0]?.transcript;
-
-    if (text) {
+    console.log("Speech recognition success:", text);
+ if (text) {
       onChangeText(text);
     }
   });
@@ -84,6 +85,55 @@ export function ChatInput({
       startListening();
     }
   };
+
+  useEffect(() => {
+  let mounted = true;
+  let stopListeningsetup: (() => Promise<void>) | undefined;
+
+  async function setup() {
+    try {
+      console.log("[WakeWord] Starting listener...");
+
+      const stop = await startWakeWordListening((yo) => {
+        console.log("[WakeWord] Detected:", yo);
+        setTimeout(() => {
+                  startListening()
+
+        }, 2000);
+      });
+
+      if (!mounted) {
+        // await stop();
+        return;
+      }
+
+      // stopListening = stop;
+      // setStatus("Listening for Hey Jarvis");
+    } catch (error) {
+      console.error("[WakeWord] Initialization failed:", error);
+
+      if (mounted) {
+        // setStatus(
+        //   `Failed: ${
+        //     error instanceof Error ? error.message : String(error)
+        //   }`
+        // );
+      }
+    }
+  }
+
+  void setup();
+
+  return () => {
+    mounted = false;
+
+    if (stopListeningsetup) {
+      void stopListeningsetup().catch((error) => {
+        console.error("[WakeWord] Stop failed:", error);
+      });
+    }
+  };
+}, []);
 
   return (
     <View style={styles.container}>

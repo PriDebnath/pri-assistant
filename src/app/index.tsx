@@ -123,7 +123,7 @@ export default function HomeScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <StatusBar backgroundColor={'#1a01ff'} hidden={false}
+        <StatusBar barStyle="dark-content" hidden={false}
         />
 
         <View style={styles.container}>
@@ -132,7 +132,7 @@ export default function HomeScreen() {
               <Text style={styles.title}>
                 Assistant
               </Text>
-<WakeWordTest/>
+{/* <WakeWordTest/> */}
               <Text style={styles.subtitle}>
                 Your personal assistant
               </Text>
@@ -157,7 +157,7 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             ListFooterComponent={
-              isThinking ? <TypingIndicator /> : null
+              isThinking ? <TypingIndicator /> : <></>
             }
           />
 

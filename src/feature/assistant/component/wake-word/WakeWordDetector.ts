@@ -1,3 +1,4 @@
+
 import { Openwakeword } from "react-native-openwakeword";
 import { prepareWakeWordModels } from "./WakeWordModels";
 import type { WakeWordDetector } from "react-native-openwakeword";
@@ -6,7 +7,7 @@ function toNativePath(uri: string): string {
   return decodeURIComponent(uri.replace(/^file:\/\//, ""));
 }
 
-export async function initializeWakeWord() {
+export async function initializeWakeWord(): Promise<WakeWordDetector> {
   const models = await prepareWakeWordModels();
 
   const melspecPath = toNativePath(models.melspectrogram);
@@ -24,8 +25,8 @@ export async function initializeWakeWord() {
     embeddingPath,
     wakeWordPath,
   });
-
-    detector.setThreshold(0.5);
+let threshold = 0.3 //30%
+  detector.setThreshold(threshold);
 
   console.log("[WakeWord] Detector initialized successfully");
 
@@ -35,17 +36,13 @@ export async function initializeWakeWord() {
 export function processWakeWordFrame(
   detector: WakeWordDetector,
   audioBuffer: ArrayBuffer
-): boolean {
+) {
   const result = detector.processFrame(audioBuffer);
 
-  if (result.isDetected) {
-    console.log(
-      "[WakeWord] Hey Jarvis detected!",
-      result.probability
-    );
-
-    return true;
-  }
-
-  return false;
+  return result;
 }
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
