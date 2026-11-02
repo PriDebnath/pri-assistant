@@ -52,14 +52,14 @@ jobs:
       # Install dependencies
       # --------------------------------------------------
       - name: Install dependencies
-        working-directory: frontend
+        # working-directory: frontend
         run: npm install
 
       # --------------------------------------------------
       # Generate Android native project
       # --------------------------------------------------
       - name: Generate Android project
-        working-directory: frontend
+        # working-directory: frontend
         run: npx expo prebuild --platform android --no-install
 
       # --------------------------------------------------
