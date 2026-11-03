@@ -1,4 +1,7 @@
-{
+const isWindows = process.platform === 'win32';
+
+
+export default ({  }) => ({
   "expo": {
     "name": "my-mobile-app",
     "slug": "my-mobile-app",
@@ -66,11 +69,12 @@
       ],
       "expo-font",
       "expo-image",
-      "expo-status-bar"
+      "expo-status-bar",
+          ['expo-build-properties', { android: isWindows ? { cmakeVersion: '3.31.6' } : {} }]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     }
   }
-}
+})
