@@ -1,47 +1,60 @@
+import { parseIntentWithAI } from "./ai/service/ai-intent.service";
 import { openApp,searchWeb,calculate,callNumber, appAliases } from "./helper";
 import { AssistantIntent, SupportedApp } from "@/types";
 
  
 
-export async function handleAssistantMessage(
-  text: string,
-): Promise<string> {
-  const intent = parseIntent(text);
+// export async function handleAssistantMessage(
+//   text: string,
+// ): Promise<string> {
+//   const intent = parseIntent(text);
 
-  switch (intent.type) {
-    case "open_app": {
-      const result = await openApp(intent.app);
+//   switch (intent.type) {
+//     case "open_app": {
+//       const result = await openApp(intent.app);
 
-      return result.message;
-    }
+//       return result.message;
+//     }
 
-    case "web_search": {
-      const result = await searchWeb(intent.query);
+//     case "web_search": {
+//       const result = await searchWeb(intent.query);
 
-      return result.message;
-    }
+//       return result.message;
+//     }
 
-    case "calculate": {
-      const result = calculate(intent.expression);
+//     case "calculate": {
+//       const result = calculate(intent.expression);
 
-      return result.message;
-    }
+//       return result.message;
+//     }
 
-    case "call": {
-      const result = await callNumber(
-        intent.phoneNumber,
-      );
+//     case "call": {
+//       const result = await callNumber(
+//         intent.phoneNumber,
+//       );
 
-      return result.message;
-    }
+//       return result.message;
+//     }
 
-    case "whatsapp": {
-      return "WhatsApp actions aren't implemented yet.";
-    }
+//     case "whatsapp": {
+//       return "WhatsApp actions aren't implemented yet.";
+//     }
 
-    case "unknown":
-    default:
-      return (
+//     case "unknown":
+//     default:
+//       return (
+//         "I don't know how to do that yet.\n\n" +
+//         "Try:\n" +
+//         "• Open YouTube\n" +
+//         "• Search for React Native\n" +
+//         "• Calculate 25 * 18\n" +
+//         "• Call 9876543210"
+//       );
+//   }
+// }
+
+const    DEAFAULT_UNKNOWN   = (
+
         "I don't know how to do that yet.\n\n" +
         "Try:\n" +
         "• Open YouTube\n" +
@@ -49,9 +62,59 @@ export async function handleAssistantMessage(
         "• Calculate 25 * 18\n" +
         "• Call 9876543210"
       );
+
+      const    AI_UNKNOWN   = (
+        " 🤖 I don't know how to do that yet.\n\n" +
+        "Try:\n" +
+        "• Open YouTube\n" +
+        "• Search for React Js\n" +
+        "• Calculate 25 * 18\n" +
+        "• Call 9876543210"
+      );
+
+export async function handleAssistantMessage(
+  text: string,
+): Promise<string> {
+  let intent = parseIntent(text);
+console.log('🤖 Using AI');
+let UNKNOWN_INTENT: string =DEAFAULT_UNKNOWN;
+
+  // Use Qwen3 only when the rule-based parser cannot understand.
+  if (intent.type === "unknown") {
+    try {
+      console.log("[Assistant] Trying AI intent recognition...");
+      intent = await parseIntentWithAI(text);
+      console.log("[Assistant] AI intent:", intent);
+ UNKNOWN_INTENT =AI_UNKNOWN;
+
+    } catch (error) {
+      console.error("[Assistant] AI recognition failed:", error);
+
+      return "I couldn't understand that request. Please try again.";
+    }
+  }
+
+  switch (intent.type) {
+    case "open_app":
+      return (await openApp(intent.app)).message;
+
+    case "web_search":
+      return (await searchWeb(intent.query)).message;
+
+    case "calculate":
+      return calculate(intent.expression).message;
+
+    case "call":
+      return (await callNumber(intent.phoneNumber)).message;
+
+    case "whatsapp":
+      return "WhatsApp actions aren't implemented yet.";
+
+    case "unknown":
+    default: return UNKNOWN_INTENT
+
   }
 }
-
 
 const appNames = Object.keys(appAliases).sort(
   (a, b) => b.length - a.length,

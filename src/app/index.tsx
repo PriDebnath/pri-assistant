@@ -147,7 +147,7 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
-          {/* <FlatList
+          <FlatList
             ref={listRef}
             data={messages}
             keyExtractor={(item) => item.id}
@@ -160,17 +160,16 @@ export default function HomeScreen() {
             ListFooterComponent={
               isThinking ? <TypingIndicator /> : <></>
             }
-          /> */}
+          />
 
         </View>
 
-{/* 
         <ChatInput
           value={input}
           onChangeText={setInput}
           onSend={sendMessage}
           disabled={isThinking}
-        /> */}
+        /> 
       </KeyboardAvoidingView>
     </SafeAreaView>
 
