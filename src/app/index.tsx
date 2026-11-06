@@ -24,6 +24,7 @@ import {
 // import type { ChatMessage } from "@/src/types/chat";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WakeWordTest } from "@/feature/assistant/component/wake-word/WakeWordTest";
+import ModelTest from "@/feature/assistant/ai/component/test-ai-response";
 
 export default function HomeScreen() {
   const [messages, setMessages] =
@@ -140,13 +141,13 @@ export default function HomeScreen() {
 
             <View style={styles.status}>
               <View style={styles.statusDot} />
-
+<ModelTest/>
               <Text style={styles.statusText}>
                 Local
               </Text>
             </View>
           </View>
-          <FlatList
+          {/* <FlatList
             ref={listRef}
             data={messages}
             keyExtractor={(item) => item.id}
@@ -159,17 +160,17 @@ export default function HomeScreen() {
             ListFooterComponent={
               isThinking ? <TypingIndicator /> : <></>
             }
-          />
+          /> */}
 
         </View>
 
-
+{/* 
         <ChatInput
           value={input}
           onChangeText={setInput}
           onSend={sendMessage}
           disabled={isThinking}
-        />
+        /> */}
       </KeyboardAvoidingView>
     </SafeAreaView>
 
