@@ -1,7 +1,7 @@
 import { ChatInput } from "@/feature/assistant/component/ChatInput";
 import { MessageBubble } from "@/feature/assistant/component/MessageBubble";
 import { TypingIndicator } from "@/feature/assistant/component/TypingIndicator";
-import { handleAssistantMessage } from "@/feature/assistant/service";
+import { handleAssistantMessage, parseIntent } from "@/feature/assistant/service";
 import { ChatMessage } from "@/types";
 import { useEffect, useRef, useState } from "react";
 import * as Speech from "expo-speech";

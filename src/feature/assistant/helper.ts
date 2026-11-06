@@ -1,8 +1,7 @@
 import { AssistantIntent, SupportedApp } from "@/types";
-
+import * as Linking from "expo-linking"
  
-
-const appAliases: Record<string, SupportedApp> = {
+export const appAliases: Record<string, SupportedApp> = {
   youtube: "youtube",
   "you tube": "youtube",
 
@@ -17,102 +16,98 @@ const appAliases: Record<string, SupportedApp> = {
   "google maps": "maps",
 
   settings: "settings",
+  
 };
 
-function detectApp(text: string): SupportedApp | null {
-  const normalized = text.toLowerCase();
+// function detectApp(text: string): SupportedApp | null {
+//   const normalized = text.toLowerCase();
 
-  for (const [alias, app] of Object.entries(appAliases)) {
-    if (normalized.includes(alias)) {
-      return app;
-    }
-  }
+//   for (const [alias, app] of Object.entries(appAliases)) {
+//     if (normalized.includes(alias)) {
+//       return app;
+//     }
+//   }
 
-  return null;
-}
+//   return null;
+// }
 
-export function parseIntent(
-  text: string,
-): AssistantIntent {
-  const normalized = text.trim().toLowerCase();
+// export function parseIntent(
+//   text: string,
+// ): AssistantIntent {
+//   const normalized = text.trim().toLowerCase();
 
-  // Open app
-  if (
-    normalized.startsWith("open ") ||
-    normalized.startsWith("launch ") ||
-    normalized.startsWith("start ")
-  ) {
-    const app = detectApp(normalized);
+//   // Open app
+//   if (
+//     normalized.startsWith("open ") ||
+//     normalized.startsWith("launch ") ||
+//     normalized.startsWith("start ")
+//   ) {
+//     const app = detectApp(normalized);
 
-    if (app) {
-      return {
-        type: "open_app",
-        app,
-      };
-    }
-  }
+//     if (app) {
+//       return {
+//         type: "open_app",
+//         app,
+//       };
+//     }
+//   }
 
-  // Calculator
-  if (
-    normalized.startsWith("calculate ") ||
-    normalized.startsWith("what is ") ||
-    normalized.startsWith("what's ")
-  ) {
-    const expression = normalized
-      .replace(/^calculate\s+/i, "")
-      .replace(/^what is\s+/i, "")
-      .replace(/^what's\s+/i, "");
+//   // Calculator
+//   if (
+//     normalized.startsWith("calculate ") ||
+//     normalized.startsWith("what is ") ||
+//     normalized.startsWith("what's ")
+//   ) {
+//     const expression = normalized
+//       .replace(/^calculate\s+/i, "")
+//       .replace(/^what is\s+/i, "")
+//       .replace(/^what's\s+/i, "");
 
-    if (/[0-9]/.test(expression)) {
-      return {
-        type: "calculate",
-        expression,
-      };
-    }
-  }
+//     if (/[0-9]/.test(expression)) {
+//       return {
+//         type: "calculate",
+//         expression,
+//       };
+//     }
+//   }
 
-  // Search
-  if (
-    normalized.startsWith("search for ") ||
-    normalized.startsWith("search ") ||
-    normalized.startsWith("google ")
-  ) {
-    const query = text
-      .replace(/^search for\s+/i, "")
-      .replace(/^search\s+/i, "")
-      .replace(/^google\s+/i, "")
-      .trim();
+//   // Search
+//   if (
+//     normalized.startsWith("search for ") ||
+//     normalized.startsWith("search ") ||
+//     normalized.startsWith("google ")
+//   ) {
+//     const query = text
+//       .replace(/^search for\s+/i, "")
+//       .replace(/^search\s+/i, "")
+//       .replace(/^google\s+/i, "")
+//       .trim();
 
-    return {
-      type: "web_search",
-      query,
-    };
-  }
+//     return {
+//       type: "web_search",
+//       query,
+//     };
+//   }
 
-  // Call
-  if (normalized.startsWith("call ")) {
-    const phoneNumber = text
-      .replace(/^call\s+/i, "")
-      .trim();
+//   // Call
+//   if (normalized.startsWith("call ")) {
+//     const phoneNumber = text
+//       .replace(/^call\s+/i, "")
+//       .trim();
 
-    if (/^[+\d\s()-]+$/.test(phoneNumber)) {
-      return {
-        type: "call",
-        phoneNumber,
-      };
-    }
-  }
+//     if (/^[+\d\s()-]+$/.test(phoneNumber)) {
+//       return {
+//         type: "call",
+//         phoneNumber,
+//       };
+//     }
+//   }
 
-  return {
-    type: "unknown",
-  };
-}
+//   return {
+//     type: "unknown",
+//   };
+// }
 
-
-//-------------
-import * as Linking from "expo-linking";
-
-// import type { SupportedApp } from "../assistant/assistant.types";
 
 const appUrls: Record<SupportedApp, string> = {
   youtube: "youtube://",
