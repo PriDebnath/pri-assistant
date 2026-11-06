@@ -1,4 +1,4 @@
-import { ChatMessage } from "@/types";
+import { ChatMessage } from "@/feature/assistant/types";
 import { StyleSheet, Text, View } from "react-native";
 
 

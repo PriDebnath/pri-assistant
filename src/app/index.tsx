@@ -1,10 +1,10 @@
 import { ChatInput } from "@/feature/assistant/component/ChatInput";
 import { MessageBubble } from "@/feature/assistant/component/MessageBubble";
 import { TypingIndicator } from "@/feature/assistant/component/TypingIndicator";
-import { handleAssistantMessage, parseIntent } from "@/feature/assistant/service";
-import { ChatMessage } from "@/types";
-import { useEffect, useRef, useState } from "react";
+import { handleAssistantMessage } from "@/feature/assistant/service";
+import { ChatMessage } from "@/feature/assistant/types";
 import * as Speech from "expo-speech";
+import { useEffect, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -22,9 +22,8 @@ import {
 // import { handleAssistantMessage } from "@/src/assistant/assistant.service";
 
 // import type { ChatMessage } from "@/src/types/chat";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { WakeWordTest } from "@/feature/assistant/component/wake-word/WakeWordTest";
 import ModelTest from "@/feature/assistant/ai/component/test-ai-response";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const [messages, setMessages] =
@@ -142,9 +141,9 @@ export default function HomeScreen() {
             <View style={styles.status}>
               <View style={styles.statusDot} />
 <ModelTest/>
-              <Text style={styles.statusText}>
+              {/* <Text style={styles.statusText}>
                 Local
-              </Text>
+              </Text> */}
             </View>
           </View>
           <FlatList

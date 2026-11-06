@@ -1,7 +1,6 @@
 
 import { loadModel } from "./model-manager.service";
 
-import { MODEL_CONFIG } from "./model.config";
 
 // export async function generateResponse(
 //   prompt: string,

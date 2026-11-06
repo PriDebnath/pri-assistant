@@ -1,5 +1,5 @@
-import type { AssistantIntent, SupportedApp } from "@/types";
-import { generateResponse } from "../model-inference.service";
+import type { AssistantIntent, SupportedApp } from "@/feature/assistant/types";
+import { generateResponse } from "./model-inference.service";
 // import { generateResponse } from "./model/model-inference.service";
 
 const SUPPORTED_APPS: SupportedApp[] = [
